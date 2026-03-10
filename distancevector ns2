@@ -1,0 +1,64 @@
+# Create a simulator object
+set ns [new Simulator]
+
+# Define trace and NAM files
+set tracefile [open "distance_vector_trace.tr" w]
+set namfile [open "distance_vector_simulation.nam" w]
+
+$ns trace-all $tracefile
+$ns namtrace-all $namfile
+
+# Define finish procedure
+proc finish {} {
+    global ns tracefile namfile
+    $ns flush-trace
+    close $tracefile
+    close $namfile
+    exec nam distance_vector_simulation.nam &
+    exit 0
+}
+
+# Create nodes
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+set n3 [$ns node]
+set n4 [$ns node]
+
+# Create links (bandwidth delay queue)
+$ns duplex-link $n0 $n1 1Mb 10ms DropTail
+$ns duplex-link $n1 $n2 1Mb 20ms DropTail
+$ns duplex-link $n2 $n3 1Mb 30ms DropTail
+$ns duplex-link $n3 $n4 1Mb 10ms DropTail
+$ns duplex-link $n0 $n2 1Mb 25ms DropTail
+$ns duplex-link $n1 $n3 1Mb 15ms DropTail
+
+# Enable Distance Vector Routing
+$ns rtproto DV
+
+# Create UDP agent at source node
+set udp0 [new Agent/UDP]
+$ns attach-agent $n0 $udp0
+
+# Create CBR traffic
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 set packetSize_ 512
+$cbr0 set rate_ 1Mb
+$cbr0 attach-agent $udp0
+
+# Create Null agent (sink) at destination node
+set null0 [new Agent/Null]
+$ns attach-agent $n4 $null0
+
+# Connect UDP source to sink
+$ns connect $udp0 $null0
+
+# Schedule events
+$ns at 1.0 "$cbr0 start"
+$ns at 4.5 "$cbr0 stop"
+
+# End simulation
+$ns at 5.0 "finish"
+
+# Run simulation
+$ns run                                                                                   gedit name11.tcl       ns name11.tcl         cat.distance_vector_trace.tr
