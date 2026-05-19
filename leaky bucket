@@ -70,7 +70,8 @@ int main() {
 
 int main()
 {
-    int bucket,output,n,i,packet;
+    int bucket, output, n, i, packet;
+    int stored = 0, leak;
 
     printf("Enter bucket size: ");
     scanf("%d",&bucket);
@@ -81,26 +82,42 @@ int main()
     printf("Enter number of packets: ");
     scanf("%d",&n);
 
-    int stored=0;
+    printf("\nTime\tInput\tStored\tLeaked\tRemaining\n");
 
-    for(i=1;i<=n;i++)
+    for(i = 1; i <= n; i++)
     {
         printf("Packet size: ");
         scanf("%d",&packet);
 
-        if(stored+packet > bucket)
-            printf("Packet dropped\n");
+        // Add packet
+        if(stored + packet > bucket)
+        {
+            stored = bucket;
+        }
         else
-            stored+=packet;
+        {
+            stored += packet;
+        }
 
-        if(stored<output)
-            stored=0;
+        // Leak packets
+        if(stored < output)
+            leak = stored;
         else
-            stored-=output;
+            leak = output;
 
-        printf("Bucket content: %d\n",stored);
+        // Print table
+        printf("%d\t%d\t%d\t%d\t%d\n",
+               i,
+               packet,
+               stored,
+               leak,
+               stored - leak);
+
+        stored = stored - leak;
     }
-}   
+
+    return 0;
+}
 
 
 
