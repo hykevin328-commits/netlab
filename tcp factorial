@@ -1,0 +1,96 @@
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+int main()
+{
+    int sockfd, fact;
+
+    char num[100];
+
+    struct sockaddr_in server;
+
+    // Create socket
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    // Server details
+    server.sin_family = AF_INET;
+    server.sin_port = htons(8080);
+    server.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    // Connect
+    connect(sockfd, (struct sockaddr *)&server, sizeof(server));
+
+    // Input number as string
+    printf("Enter Number: ");
+    scanf("%s", num);
+
+    // Send string
+    send(sockfd, num, sizeof(num), 0);
+
+    // Receive factorial
+    recv(sockfd, &fact, sizeof(fact), 0);
+
+    printf("Factorial = %d\n", fact);
+
+    close(sockfd);
+
+    return 0;
+}                             client above 
+
+  server
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+int main()
+{
+    int sockfd, newsock;
+    int num, fact = 1, i;
+
+    char buffer[100];
+
+    struct sockaddr_in server, client;
+    socklen_t len = sizeof(client);
+
+    // Create socket
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    // Server details
+    server.sin_family = AF_INET;
+    server.sin_port = htons(8080);
+    server.sin_addr.s_addr = INADDR_ANY;
+
+    // Bind
+    bind(sockfd, (struct sockaddr *)&server, sizeof(server));
+
+    // Listen
+    listen(sockfd, 5);
+
+    // Accept
+    newsock = accept(sockfd, (struct sockaddr *)&client, &len);
+
+    // Receive string
+    recv(newsock, buffer, sizeof(buffer), 0);
+
+    // Convert string to integer
+    num = atoi(buffer);
+
+    // Find factorial
+    for(i = 1; i <= num; i++)
+    {
+        fact = fact * i;
+    }
+
+    // Send factorial
+    send(newsock, &fact, sizeof(fact), 0);
+
+    printf("Factorial Sent\n");
+
+    close(newsock);
+    close(sockfd);
+
+    return 0;
+}  
